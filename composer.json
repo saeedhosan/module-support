@@ -1,0 +1,70 @@
+{
+    "name": "saeedhosan/module-support",
+    "version": "dev-main",
+    "description": "The package provides helper and support class for Laravel module.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "module",
+        "support",
+        "laravel-module",
+        "module-support",
+        "saeedhosan"
+    ],
+    "require": {
+        "php": "^8.2.0",
+        "laravel/framework": "^11.0 || ^12.0 || ^13.0",
+        "saeedhosan/laravel-additions": "^0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SaeedHosan\\Module\\Support\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Saeed",
+            "email": "saeedhosansh@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "laravel/pint": "^1.25",
+        "pestphp/pest": "^3.8",
+        "phpstan/phpstan": "^2.1",
+        "orchestra/testbench": "^10.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SaeedHosan\\Module\\Support\\ServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "lint": "pint -v",
+        "test:lint": "pint --test -v",
+        "test:types": "phpstan analyse --ansi",
+        "test:unit": "pest --colors=always",
+        "test": [
+            "@test:lint",
+            "@test:types",
+            "@test:unit"
+        ]
+    }
+}
