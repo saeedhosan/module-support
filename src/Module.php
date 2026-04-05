@@ -83,7 +83,7 @@ class Module implements Arrayable, ModuleContract
     /**
      * Get the module application path from composer.json.
      */
-    public function appPath(string ...$segments): string
+    public function appPath(string ...$segments): ?string
     {
         return $this->repository->appPath(...$segments);
     }
@@ -115,7 +115,7 @@ class Module implements Arrayable, ModuleContract
     /**
      * Get the module namespace from composer.json.
      */
-    public function namespace(): string
+    public function namespace(): ?string
     {
         return $this->repository->namespace();
     }

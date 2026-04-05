@@ -64,13 +64,12 @@ class ModuleRepository
     /**
      * Get the module application path from composer.json.
      */
-    public function appPath(string ...$segments): string
+    public function appPath(string ...$segments): ?string
     {
-
         $path = mb_rtrim((string) Arr::first($this->composerPsr4()), '/');
 
         if ($path === '') {
-            return config('module.app_path', 'app');
+            return null;
         }
 
         return $this->basePath($path, ...$segments);
@@ -119,12 +118,12 @@ class ModuleRepository
     /**
      * Get the module namespace from composer.json.
      */
-    public function namespace(): string
+    public function namespace(): ?string
     {
         $namespace = (string) is_array($psr4 = $this->composerPsr4()) ? array_key_first($psr4) : null;
 
         if ($namespace === '' || is_null($namespace)) {
-            return $this->defaultNamespace();
+            return null;
         }
 
         return mb_rtrim($namespace, '\\');

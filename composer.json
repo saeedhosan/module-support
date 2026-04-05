@@ -58,7 +58,7 @@
     "scripts": {
         "lint": "pint -v",
         "test:lint": "pint --test -v",
-        "test:types": "phpstan analyse --ansi",
+        "test:types": "phpstan analyse --ansi --debug",
         "test:unit": "pest --colors=always",
         "test": [
             "@test:lint",
