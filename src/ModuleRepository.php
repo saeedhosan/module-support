@@ -204,15 +204,15 @@ class ModuleRepository
     public function toArray(): array
     {
         return [
-            'name'        => $this->name(),
-            'path'        => $this->path(),
-            'exists'      => $this->exists(),
-            'version'     => $this->version(),
-            'app_path'    => $this->appPath(),
-            'base_path'   => $this->basePath(),
-            'view_path'   => $this->viewPath(),
-            'namespace'   => $this->namespace(),
-            'providers'   => $this->providers(),
+            'name' => $this->name(),
+            'path' => $this->path(),
+            'exists' => $this->exists(),
+            'version' => $this->version(),
+            'app_path' => $this->appPath(),
+            'base_path' => $this->basePath(),
+            'view_path' => $this->viewPath(),
+            'namespace' => $this->namespace(),
+            'providers' => $this->providers(),
             'description' => $this->description(),
         ];
     }

@@ -97,7 +97,7 @@ class ModuleManager implements ModuleFinderContract
         $directory = mb_rtrim(base_path((string) Arr::get($this->config, 'directory', 'modules')), '/');
 
         if (! $this->files->exists($directory)) {
-            $this->allModulesCache = new ModuleCollection();
+            $this->allModulesCache = new ModuleCollection;
 
             return $this->allModulesCache;
         }

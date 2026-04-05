@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use SaeedHosan\Module\Support\ModuleManager;
 use SaeedHosan\Module\Support\Module;
+use SaeedHosan\Module\Support\ModuleManager;
 
 if (! function_exists('module')) {
     /**

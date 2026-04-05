@@ -36,7 +36,7 @@ class ModuleSupportTestCase extends TestCase
         parent::setUp();
 
         $this->basePath = sys_get_temp_dir().'/module-support-tests-'.uniqid();
-        $this->files    = new Filesystem();
+        $this->files = new Filesystem;
         $this->files->ensureDirectoryExists($this->basePath);
 
         $this->app = new Application($this->basePath);
@@ -117,7 +117,7 @@ it('detects module existence', function (): void {
 });
 
 it('binds module manager as a singleton', function (): void {
-    $first  = app(ModuleManager::class);
+    $first = app(ModuleManager::class);
     $second = app(ModuleManager::class);
 
     expect($first)->toBe($second);
@@ -159,9 +159,9 @@ it('finds modules only when they exist', function (): void {
 
 it('returns namespace and app path when psr-4 is present', function (): void {
     createModule($this->files, $this->basePath, 'Blog', [
-        'version'     => '1.2.3',
+        'version' => '1.2.3',
         'description' => 'Blog module',
-        'autoload'    => [
+        'autoload' => [
             'psr-4' => [
                 'Modules\\Blog\\' => 'src/',
             ],
@@ -360,9 +360,9 @@ it('returns providers from composer extra section', function (): void {
 
 it('builds a full module array representation', function (): void {
     createModule($this->files, $this->basePath, 'Blog', [
-        'version'     => '9.9.9',
+        'version' => '9.9.9',
         'description' => 'Example module',
-        'autoload'    => [
+        'autoload' => [
             'psr-4' => [
                 'Modules\\Blog\\' => 'src/',
             ],

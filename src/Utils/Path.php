@@ -106,7 +106,7 @@ class Path
     {
         // debug_backtrace gives us the file where Path::current() was invoked
         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? __FILE__;
-        $dir   = dirname($trace);
+        $dir = dirname($trace);
 
         return self::join($dir, ...$segments);
     }
