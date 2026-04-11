@@ -15,7 +15,7 @@ This package gives you the tools to discover, manage, and work with those module
 
 ## Installation
 
-Pull it in via Composer:
+Install via Composer:
 
 ```bash
 composer require saeedhosan/module-support
@@ -131,6 +131,45 @@ module()->all();
 
 // Check if a module exists
 module()->find('blog');
+```
+
+### Blade Components
+
+This package includes a `<x-module>` Blade component for conditionally rendering content based on module status:
+
+```blade
+{{-- Show content only if the Blog module is active --}}
+<x-module name="blog">
+    <div class="blog-content">
+        <h1>Welcome to our Blog!</h1>
+    </div>
+</x-module>
+```
+
+The component accepts these attributes:
+- `name` (required): The module name to check
+- `title` (optional): Fallback title for the error message
+
+If the module is not active, it displays a placeholder message. You can also customize the wrapper styles using standard HTML attributes:
+
+```blade
+<x-module name="blog" class="custom-wrapper" id="blog-section">
+    <p>Blog content here</p>
+</x-module>
+```
+
+### Blade Directives
+
+The package provides a `@module` directive for conditionally including content:
+
+```blade
+@module('blog')
+    <p>Blog module is active and ready!</p>
+@endmodule
+
+@module('payments')
+    <p>Payment features available</p>
+@endmodule
 ```
 
 ### Bootstrapping Module Providers
