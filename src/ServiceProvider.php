@@ -27,10 +27,6 @@ class ServiceProvider extends BaseServiceProvider
                 config: $app['config']->get('module', [])
             );
         });
-
-        if (! function_exists('module')) {
-            require_once __DIR__.'/helpers.php';
-        }
     }
 
     /**
