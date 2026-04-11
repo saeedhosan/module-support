@@ -12,15 +12,20 @@ use SaeedHosan\Module\Support\Utils\Path;
 class ModuleRepository
 {
     /**
+     * Store the composer data
+     *
      * @var array<string, mixed>|null
      */
     protected ?array $composerData = null;
 
+    /**
+     * Create a new module repository instance
+     */
     public function __construct(
         protected string $name,
         protected Filesystem $files,
         protected string $basePath,
-        protected bool $lowercase
+        protected bool $lowercase = true
     ) {}
 
     /**

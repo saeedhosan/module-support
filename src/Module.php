@@ -10,6 +10,9 @@ use SaeedHosan\Module\Support\Contracts\ModuleContract;
 
 class Module implements Arrayable, ModuleContract
 {
+    /**
+     * Create a new module instance
+     */
     public function __construct(
         protected Application $app,
         protected ModuleRepository $repository,
@@ -33,9 +36,7 @@ class Module implements Arrayable, ModuleContract
             return false;
         }
 
-        $namespace = $this->namespace();
-
-        if (! $this->manager->isNamespaceAutoloaded($namespace)) {
+        if (! $this->manager->isNamespaceAutoloaded($this->namespace())) {
             return false;
         }
 
