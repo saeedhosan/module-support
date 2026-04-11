@@ -6,6 +6,7 @@ use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Container\Container;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\View\ViewServiceProvider;
 use SaeedHosan\Module\Support\ModuleManager;
@@ -180,7 +181,6 @@ it('registers module blade component', function () {
     $basePath = sys_get_temp_dir().'/service-provider-test-'.uniqid();
     $files = new Filesystem;
     $files->ensureDirectoryExists($basePath);
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
     $files->ensureDirectoryExists($basePath.'/resources/views');
     $files->ensureDirectoryExists($basePath.'/storage/framework/views');
     $files->ensureDirectoryExists($basePath.'/vendor/composer');

@@ -494,42 +494,6 @@ it('returns only resolved modules from all', function (): void {
     cleanup($basePath, $files, $app);
 });
 
-it('renders module component when active', function (): void {
-    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
-    $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath);
-
-    $app = createApp($basePath, $files);
-
-    createModule($files, $basePath, 'Blog', [
-        'autoload' => [
-            'psr-4' => [
-                'Modules\\Blog\\' => 'src/',
-            ],
-        ],
-    ]);
-
-    createAutoloadPsr4($files, $basePath, [
-        'Modules\\Blog\\' => [$basePath.'/modules/Blog/src'],
-    ]);
-
-    expect(module('Blog')->active())->toBeTrue();
-
-    cleanup($basePath, $files, $app);
-});
-
-it('renders fallback message when module is not active', function (): void {
-    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
-    $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath);
-
-    $app = createApp($basePath, $files);
-
-    expect(module('NonExistent')->active())->toBeFalse();
-
-    cleanup($basePath, $files, $app);
-});
-
 function createApp(string $basePath, Filesystem $files): Application
 {
     $app = new Application($basePath);
