@@ -162,6 +162,6 @@ composer test
 
 Found a bug or want to add a feature? Pull requests are totally welcome. Just make sure the tests pass before submitting.
 
-## License
+---
 
-This package is open-sourced under the MIT License. Do whatever you want with it.
+**Module support** was created by **[Saeed Hosan](https://www.linkedin.com/in/saeedhosan)** under the **[MIT license](https://opensource.org/licenses/MIT)**.
