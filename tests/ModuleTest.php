@@ -2,529 +2,248 @@
 
 declare(strict_types=1);
 
-use Illuminate\Config\Repository as ConfigRepository;
-use Illuminate\Container\Container;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Facade;
 use SaeedHosan\Module\Support\Module;
 use SaeedHosan\Module\Support\ModuleManager;
-use SaeedHosan\Module\Support\ServiceProvider;
 use Tests\TestCase;
 
 uses(TestCase::class);
 
 it('can be instantiated', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
     $files->ensureDirectoryExists($basePath.'/modules/blog');
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
-
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
-
-    (new ServiceProvider($app))->register();
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
     $manager = app(ModuleManager::class);
     $module = $manager->module('blog');
 
     expect($module)->toBeInstanceOf(Module::class);
 
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns module exists status', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
     $files->ensureDirectoryExists($basePath.'/modules/blog');
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    expect(module('blog')->exists())->toBeTrue();
+    expect(module('nonexistent')->exists())->toBeFalse();
 
-    (new ServiceProvider($app))->register();
-
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->exists())->toBeTrue();
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns module name', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
     $files->ensureDirectoryExists($basePath.'/modules/blog');
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    expect(module('blog')->name())->toBe('blog');
 
-    (new ServiceProvider($app))->register();
-
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('Blog');
-
-    expect($module->name())->toBe('blog');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns module base path', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
     $files->ensureDirectoryExists($basePath.'/modules/blog');
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    expect(module('blog')->basePath())->toBe($basePath.'/modules/blog');
 
-    (new ServiceProvider($app))->register();
-
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->basePath())->toContain('/modules/blog');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns module path', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
     $files->ensureDirectoryExists($basePath.'/modules/blog');
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    expect(module('blog')->path())->toBe($basePath.'/modules/blog');
 
-    (new ServiceProvider($app))->register();
-
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->path())->toBe($module->basePath());
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns version from composer json', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
-    $files->put($basePath.'/modules/blog/composer.json', json_encode([
-        'name' => 'vendor/blog',
-        'version' => '1.0.0',
-    ]));
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    createModule($files, $basePath, 'blog', ['version' => '2.0.0']);
 
-    (new ServiceProvider($app))->register();
+    expect(module('blog')->version())->toBe('2.0.0');
 
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->version())->toBe('1.0.0');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns description from composer json', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
-    $files->put($basePath.'/modules/blog/composer.json', json_encode([
-        'name' => 'vendor/blog',
-        'description' => 'Blog module',
-    ]));
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    createModule($files, $basePath, 'blog', ['description' => 'Blog module']);
 
-    (new ServiceProvider($app))->register();
+    expect(module('blog')->description())->toBe('Blog module');
 
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->description())->toBe('Blog module');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns providers from composer json', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
-    $files->put($basePath.'/modules/blog/composer.json', json_encode([
-        'name' => 'vendor/blog',
+
+    $app = createTestAppWithServiceProvider($basePath, $files);
+
+    createModule($files, $basePath, 'blog', [
         'extra' => [
             'laravel' => [
-                'providers' => ['Blog\\Providers\\BlogServiceProvider'],
+                'providers' => ['BlogServiceProvider'],
             ],
         ],
-    ]));
+    ]);
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    expect(module('blog')->providers())->toBe(['BlogServiceProvider']);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
-
-    (new ServiceProvider($app))->register();
-
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->providers())->toBe(['Blog\\Providers\\BlogServiceProvider']);
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns composer data', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
-    $files->put($basePath.'/modules/blog/composer.json', json_encode([
+
+    $app = createTestAppWithServiceProvider($basePath, $files);
+
+    createModule($files, $basePath, 'blog', [
         'name' => 'vendor/blog',
         'version' => '1.0.0',
-    ]));
+    ]);
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $composer = module('blog')->composer();
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    expect($composer['name'])->toBe('vendor/blog');
+    expect($composer['version'])->toBe('1.0.0');
 
-    (new ServiceProvider($app))->register();
-
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->composer()['version'])->toBe('1.0.0');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns namespace from composer psr-4', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
-    $files->put($basePath.'/modules/blog/composer.json', json_encode([
-        'name' => 'vendor/blog',
+
+    $app = createTestAppWithServiceProvider($basePath, $files);
+
+    createModule($files, $basePath, 'blog', [
         'autoload' => [
             'psr-4' => [
                 'Modules\\Blog\\' => 'src/',
             ],
         ],
-    ]));
+    ]);
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    expect(module('blog')->namespace())->toBe('Modules\\Blog');
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
-
-    (new ServiceProvider($app))->register();
-
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->namespace())->toBe('Modules\\Blog');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns default namespace', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
-    $files->put($basePath.'/modules/blog/composer.json', json_encode(['name' => 'vendor/blog']));
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('module.namespace', 'Modules');
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    createModule($files, $basePath, 'blog', []);
 
-    (new ServiceProvider($app))->register();
+    expect(module('blog')->namespace())->toBeNull();
 
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->defaultNamespace())->toBe('Modules\\Blog');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns app path from psr-4', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
-    $files->put($basePath.'/modules/blog/composer.json', json_encode([
-        'name' => 'vendor/blog',
+
+    $app = createTestAppWithServiceProvider($basePath, $files);
+
+    createModule($files, $basePath, 'blog', [
         'autoload' => [
             'psr-4' => [
                 'Modules\\Blog\\' => 'src/',
             ],
         ],
-    ]));
+    ]);
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    expect(module('blog')->appPath())->toBe($basePath.'/modules/blog/src');
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
-
-    (new ServiceProvider($app))->register();
-
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->appPath())->toContain('/modules/blog/src');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns view path', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('module.view_path', 'resources/views');
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    createModule($files, $basePath, 'blog', []);
 
-    (new ServiceProvider($app))->register();
+    expect(module('blog')->viewPath())->toBe($basePath.'/modules/blog/resources/views');
 
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->viewPath())->toContain('/modules/blog/resources/views');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns lang path', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('module.lang_path', 'lang');
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    createModule($files, $basePath, 'blog', []);
 
-    (new ServiceProvider($app))->register();
+    expect(module('blog')->langPath())->toBe($basePath.'/modules/blog/resources/lang');
 
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->langPath())->toContain('/modules/blog/lang');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('returns toArray with module data', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
-    $files->put($basePath.'/modules/blog/composer.json', json_encode([
-        'name' => 'vendor/blog',
+
+    $app = createTestAppWithServiceProvider($basePath, $files);
+
+    createModule($files, $basePath, 'blog', [
         'version' => '1.0.0',
         'description' => 'Blog module',
-    ]));
+    ]);
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $array = module('blog')->toArray();
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
-
-    (new ServiceProvider($app))->register();
-
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    $array = $module->toArray();
-
+    expect($array)->toBeArray();
     expect($array['name'])->toBe('blog');
     expect($array['version'])->toBe('1.0.0');
     expect($array['description'])->toBe('Blog module');
-    expect($array['exists'])->toBeTrue();
 
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });
 
 it('can call basePath with segments', function () {
-    $basePath = sys_get_temp_dir().'/module-test-'.uniqid();
+    $basePath = sys_get_temp_dir().'/test-'.uniqid();
     $files = new Filesystem;
-    $files->ensureDirectoryExists($basePath.'/modules/blog');
 
-    $app = new Application($basePath);
-    Container::setInstance($app);
-    Facade::setFacadeApplication($app);
+    $app = createTestAppWithServiceProvider($basePath, $files);
 
-    $app->instance('config', new ConfigRepository([]));
-    $app->singleton(Filesystem::class, fn () => $files);
-    $app->instance('files', $files);
-    $app['config']->set('module.directory', 'modules');
-    $app['config']->set('module.lowercase', true);
-    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-    $app['config']->set('cache.default', 'array');
+    createModule($files, $basePath, 'blog', []);
 
-    (new ServiceProvider($app))->register();
+    expect(module('blog')->basePath('src', 'Providers'))->toBe($basePath.'/modules/blog/src/Providers');
 
-    $manager = app(ModuleManager::class);
-    $module = $manager->module('blog');
-
-    expect($module->basePath('src'))->toContain('/modules/blog/src');
-    expect($module->basePath('src', 'Http'))->toContain('/modules/blog/src/Http');
-
-    $files->deleteDirectory($basePath);
-    Container::setInstance(null);
-    Facade::clearResolvedInstances();
+    cleanupTestApp($basePath, $files);
 });

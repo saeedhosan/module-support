@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Tests;
 
 use Orchestra\Testbench\TestCase as Orchestra;
-use SaeedHosan\Module\Support\ServiceProvider as SupportServiceProvider;
+use SaeedHosan\Module\Support\ServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
     protected function getPackageProviders($app): array
     {
-        return [SupportServiceProvider::class];
+        return [ServiceProvider::class];
     }
 
     protected function defineEnvironment($app)
