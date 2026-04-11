@@ -158,19 +158,6 @@ The package comes with a solid test suite. Make sure everything still works:
 composer test
 ```
 
-This runs linting, type checks, and unit tests in one go. Or run them individually:
-
-```bash
-# Lint & fix code style
-composer run lint
-
-# Static analysis
-composer run test:types
-
-# Unit tests
-composer run test:unit
-```
-
 ## Contributing
 
 Found a bug or want to add a feature? Pull requests are totally welcome. Just make sure the tests pass before submitting.
