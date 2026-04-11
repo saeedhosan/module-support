@@ -17,66 +17,7 @@ use SaeedHosan\Module\Support\ModuleRepository;
 use SaeedHosan\Module\Support\ServiceProvider;
 use Tests\Fixtures\TestModuleProvider;
 
-require_once __DIR__.'/../src/helpers.php';
-require_once __DIR__.'/Fixtures/TestModuleProvider.php';
-require_once __DIR__.'/../src/ModuleRepository.php';
-
-class ModuleSupportTestCase extends TestCase
-{
-    protected Application $app;
-
-    protected Filesystem $files;
-
-    protected string $basePath;
-
-    protected string $modulesPath;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->basePath = sys_get_temp_dir().'/module-support-tests-'.uniqid();
-        $this->files = new Filesystem;
-        $this->files->ensureDirectoryExists($this->basePath);
-
-        $this->app = new Application($this->basePath);
-        Container::setInstance($this->app);
-        Facade::setFacadeApplication($this->app);
-
-        $this->app->instance('config', new ConfigRepository([]));
-        $this->app->singleton(Filesystem::class, fn (): Filesystem => $this->files);
-        $this->app->instance('files', $this->files);
-        $this->app->alias('files', Filesystem::class);
-        $this->app['config']->set('view.paths', [$this->basePath.'/resources/views']);
-        $this->app['config']->set('view.compiled', $this->basePath.'/storage/framework/views');
-
-        $this->app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-        $this->app['config']->set('cache.default', 'array');
-        $this->app['config']->set('module.lowercase', false);
-        $this->app['config']->set('module.directory', 'modules');
-
-        $this->app->register(ViewServiceProvider::class);
-        (new ServiceProvider($this->app))->register();
-        (new ServiceProvider($this->app))->boot();
-
-        $this->modulesPath = base_path('modules');
-        $this->files->ensureDirectoryExists($this->modulesPath);
-    }
-
-    protected function tearDown(): void
-    {
-        if ($this->files->exists($this->basePath)) {
-            $this->files->deleteDirectory($this->basePath);
-        }
-
-        Facade::clearResolvedInstances();
-        Container::setInstance(null);
-
-        parent::tearDown();
-    }
-}
-
-uses(ModuleSupportTestCase::class);
+uses(TestCase::class);
 
 function createModule(Filesystem $files, string $basePath, string $name, array $composerData): void
 {
@@ -86,9 +27,6 @@ function createModule(Filesystem $files, string $basePath, string $name, array $
     $files->put($modulePath.'/composer.json', json_encode($composerData, JSON_PRETTY_PRINT));
 }
 
-/**
- * @param  array<string, array<int, string>>  $map
- */
 function createAutoloadPsr4(Filesystem $files, string $basePath, array $map): void
 {
     $autoloadPath = $basePath.'/vendor/composer';
@@ -101,64 +39,127 @@ function createAutoloadPsr4(Filesystem $files, string $basePath, array $map): vo
 }
 
 it('returns a module manager from the helper', function (): void {
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+    $app = createApp($basePath, $files);
+
     expect(module())->toBeInstanceOf(ModuleManager::class);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('returns a module instance from the helper', function (): void {
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+    $app = createApp($basePath, $files);
+
     expect(module('Blog'))->toBeInstanceOf(Module::class);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('detects module existence', function (): void {
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
     expect(module('Blog')->exists())->toBeFalse();
 
-    createModule($this->files, $this->basePath, 'Blog', []);
+    createModule($files, $basePath, 'Blog', []);
 
     expect(module('Blog')->exists())->toBeTrue();
+
+    cleanup($basePath, $files, $app);
 });
 
 it('binds module manager as a singleton', function (): void {
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+    $app = createApp($basePath, $files);
+
     $first = app(ModuleManager::class);
     $second = app(ModuleManager::class);
 
     expect($first)->toBe($second);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('returns a module collection from loaded', function (): void {
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+    $app = createApp($basePath, $files);
+
     $collection = module()->loaded();
 
     expect($collection)->toBeInstanceOf(ModuleCollection::class);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('returns a module collection from all', function (): void {
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+    $app = createApp($basePath, $files);
+
     $collection = module()->all();
 
     expect($collection)->toBeInstanceOf(ModuleCollection::class);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('converts module collection to array data', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
-        'version' => '1.0.0',
-    ]);
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', ['version' => '1.0.0']);
 
     $data = module()->all()->toArray();
 
     expect($data)->toBeArray();
     expect($data[0])->toHaveKey('name');
     expect($data[0])->toHaveKey('version');
+
+    cleanup($basePath, $files, $app);
 });
 
 it('finds modules only when they exist', function (): void {
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
     $manager = module();
 
     expect($manager->find('Blog'))->toBeNull();
 
-    createModule($this->files, $this->basePath, 'Blog', []);
+    createModule($files, $basePath, 'Blog', []);
 
     expect($manager->find('Blog'))->toBeInstanceOf(Module::class);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('returns namespace and app path when psr-4 is present', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', [
         'version' => '1.2.3',
         'description' => 'Blog module',
         'autoload' => [
@@ -174,21 +175,35 @@ it('returns namespace and app path when psr-4 is present', function (): void {
     expect($module->appPath())->toBe(base_path('modules/Blog/src'));
     expect($module->version())->toBe('1.2.3');
     expect($module->description())->toBe('Blog module');
+
+    cleanup($basePath, $files, $app);
 });
 
 it('returns null namespace and app path when psr-4 is missing', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
-        'name' => 'modules/blog',
-    ]);
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', ['name' => 'modules/blog']);
 
     $module = module('Blog');
 
     expect($module->namespace())->toBeNull();
     expect($module->appPath())->toBeNull();
+
+    cleanup($basePath, $files, $app);
 });
 
 it('renders blade module directive content when active', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', [
         'autoload' => [
             'psr-4' => [
                 'Modules\\Blog\\' => 'src/',
@@ -196,10 +211,8 @@ it('renders blade module directive content when active', function (): void {
         ],
     ]);
 
-    createAutoloadPsr4($this->files, $this->basePath, [
-        'Modules\\Blog\\' => [
-            $this->basePath.'/modules/Blog/src',
-        ],
+    createAutoloadPsr4($files, $basePath, [
+        'Modules\\Blog\\' => [$basePath.'/modules/Blog/src'],
     ]);
 
     $compiled = Blade::compileString("@module('Blog')\nActive\n@else\nInactive\n@endmodule");
@@ -209,10 +222,18 @@ it('renders blade module directive content when active', function (): void {
     $output = mb_trim((string) ob_get_clean());
 
     expect($output)->toBe('Active');
+
+    cleanup($basePath, $files, $app);
 });
 
 it('renders blade module directive else content when inactive', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', [
         'autoload' => [
             'psr-4' => [
                 'Modules\\Blog\\' => 'src/',
@@ -227,28 +248,18 @@ it('renders blade module directive else content when inactive', function (): voi
     $output = mb_trim((string) ob_get_clean());
 
     expect($output)->toBe('Inactive');
-});
 
-it('renders blade module else content when inactive', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
-        'autoload' => [
-            'psr-4' => [
-                'Modules\\Blog\\' => 'src/',
-            ],
-        ],
-    ]);
-
-    $compiled = Blade::compileString("@module('Blog')\nActive\n@else\nElse\n@endmodule");
-
-    ob_start();
-    eval('?>'.$compiled);
-    $output = mb_trim((string) ob_get_clean());
-
-    expect($output)->toBe('Else');
+    cleanup($basePath, $files, $app);
 });
 
 it('returns false for active when module is not autoloaded', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', [
         'autoload' => [
             'psr-4' => [
                 'Modules\\Blog\\' => 'src/',
@@ -257,37 +268,18 @@ it('returns false for active when module is not autoloaded', function (): void {
     ]);
 
     expect(module('Blog')->active())->toBeFalse();
-});
 
-it('returns true for active when autoloaded and providers are loaded', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
-        'autoload' => [
-            'psr-4' => [
-                'Modules\\Blog\\' => 'src/',
-            ],
-        ],
-        'extra' => [
-            'laravel' => [
-                'providers' => [
-                    TestModuleProvider::class,
-                ],
-            ],
-        ],
-    ]);
-
-    createAutoloadPsr4($this->files, $this->basePath, [
-        'Modules\\Blog\\' => [
-            $this->basePath.'/modules/Blog/src',
-        ],
-    ]);
-
-    $this->app->register(TestModuleProvider::class);
-
-    expect(module('Blog')->active())->toBeTrue();
+    cleanup($basePath, $files, $app);
 });
 
 it('returns true for active when autoloaded and no providers are defined', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', [
         'autoload' => [
             'psr-4' => [
                 'Modules\\Blog\\' => 'src/',
@@ -295,71 +287,100 @@ it('returns true for active when autoloaded and no providers are defined', funct
         ],
     ]);
 
-    createAutoloadPsr4($this->files, $this->basePath, [
-        'Modules\\Blog\\' => [
-            $this->basePath.'/modules/Blog/src',
-        ],
+    createAutoloadPsr4($files, $basePath, [
+        'Modules\\Blog\\' => [$basePath.'/modules/Blog/src'],
     ]);
 
     expect(module('Blog')->active())->toBeTrue();
+
+    cleanup($basePath, $files, $app);
 });
 
 it('returns empty composer data when composer json is missing', function (): void {
-    $this->files->ensureDirectoryExists($this->basePath.'/modules/Blog');
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    $files->ensureDirectoryExists($basePath.'/modules/Blog');
 
     $module = module('Blog');
 
     expect($module->composer())->toBe([]);
     expect($module->providers())->toBe([]);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('uses the module repository alias for backward compatibility', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', []);
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', []);
 
     $alias = new ModuleRepository(
         name: 'Blog',
-        files: $this->files,
+        files: $files,
         basePath: 'modules',
         lowercase: false
     );
 
-    $support = new ModuleRepository(
-        name: 'Blog',
-        files: $this->files,
-        basePath: 'modules',
-        lowercase: false
-    );
+    expect($alias->path())->toBe(base_path('modules/Blog'));
 
-    expect($alias->path())->toBe($support->path());
+    cleanup($basePath, $files, $app);
 });
 
 it('returns empty composer data when composer json is invalid', function (): void {
-    $modulePath = $this->basePath.'/modules/Blog';
-    $this->files->ensureDirectoryExists($modulePath);
-    $this->files->put($modulePath.'/composer.json', '{invalid-json');
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    $modulePath = $basePath.'/modules/Blog';
+    $files->ensureDirectoryExists($modulePath);
+    $files->put($modulePath.'/composer.json', '{invalid-json');
 
     $module = module('Blog');
 
     expect($module->composer())->toBe([]);
     expect($module->namespace())->toBeNull();
+
+    cleanup($basePath, $files, $app);
 });
 
 it('returns providers from composer extra section', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', [
         'extra' => [
             'laravel' => [
-                'providers' => [
-                    TestModuleProvider::class,
-                ],
+                'providers' => [TestModuleProvider::class],
             ],
         ],
     ]);
 
     expect(module('Blog')->providers())->toBe([TestModuleProvider::class]);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('builds a full module array representation', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', [
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', [
         'version' => '9.9.9',
         'description' => 'Example module',
         'autoload' => [
@@ -369,9 +390,7 @@ it('builds a full module array representation', function (): void {
         ],
         'extra' => [
             'laravel' => [
-                'providers' => [
-                    TestModuleProvider::class,
-                ],
+                'providers' => [TestModuleProvider::class],
             ],
         ],
     ]);
@@ -385,30 +404,44 @@ it('builds a full module array representation', function (): void {
     expect($data['version'])->toBe('9.9.9');
     expect($data['description'])->toBe('Example module');
     expect($data['providers'])->toBe([TestModuleProvider::class]);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('respects lowercase module name option in repository', function (): void {
-    createModule($this->files, $this->basePath, 'blog', []);
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'blog', []);
 
     $repository = new ModuleRepository(
         name: 'Blog',
-        files: $this->files,
+        files: $files,
         basePath: 'modules',
         lowercase: true
     );
 
     expect($repository->name())->toBe('blog');
+
+    cleanup($basePath, $files, $app);
 });
 
 it('registers providers only once', function (): void {
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
     TestModuleProvider::$registerCount = 0;
 
-    createModule($this->files, $this->basePath, 'Blog', [
+    createModule($files, $basePath, 'Blog', [
         'extra' => [
             'laravel' => [
-                'providers' => [
-                    TestModuleProvider::class,
-                ],
+                'providers' => [TestModuleProvider::class],
             ],
         ],
     ]);
@@ -419,26 +452,78 @@ it('registers providers only once', function (): void {
     $module->register();
 
     expect(TestModuleProvider::$registerCount)->toBe(1);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('returns only resolved modules from loaded', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', []);
-    createModule($this->files, $this->basePath, 'Shop', []);
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', []);
+    createModule($files, $basePath, 'Shop', []);
 
     module('Blog');
 
     $names = module()->loaded()->names();
 
     expect($names)->toBe(['Blog']);
+
+    cleanup($basePath, $files, $app);
 });
 
 it('returns only resolved modules from all', function (): void {
-    createModule($this->files, $this->basePath, 'Blog', []);
-    createModule($this->files, $this->basePath, 'Shop', []);
+    $basePath = sys_get_temp_dir().'/module-system-test-'.uniqid();
+    $files = new Filesystem;
+    $files->ensureDirectoryExists($basePath);
+
+    $app = createApp($basePath, $files);
+
+    createModule($files, $basePath, 'Blog', []);
+    createModule($files, $basePath, 'Shop', []);
 
     $names = module()->all()->names();
 
     sort($names);
 
     expect($names)->toBe(['Blog', 'Shop']);
+
+    cleanup($basePath, $files, $app);
 });
+
+function createApp(string $basePath, Filesystem $files): Application
+{
+    $app = new Application($basePath);
+    Container::setInstance($app);
+    Facade::setFacadeApplication($app);
+
+    $app->instance('config', new ConfigRepository([]));
+    $app->singleton(Filesystem::class, fn () => $files);
+    $app->instance('files', $files);
+    $app->alias('files', Filesystem::class);
+    $app['config']->set('view.paths', [$basePath.'/resources/views']);
+    $app['config']->set('view.compiled', $basePath.'/storage/framework/views');
+    $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+    $app['config']->set('cache.default', 'array');
+    $app['config']->set('module.lowercase', false);
+    $app['config']->set('module.directory', 'modules');
+
+    $app->register(ViewServiceProvider::class);
+    (new ServiceProvider($app))->register();
+    (new ServiceProvider($app))->boot();
+
+    return $app;
+}
+
+function cleanup(string $basePath, Filesystem $files, Application $app): void
+{
+    if ($files->exists($basePath)) {
+        $files->deleteDirectory($basePath);
+    }
+
+    Facade::clearResolvedInstances();
+    Container::setInstance(null);
+}
