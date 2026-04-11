@@ -1,7 +1,6 @@
 {
     "name": "saeedhosan/module-support",
-    "version": "dev-main",
-    "description": "The package provides helper and support class for Laravel module.",
+    "description": "The package support for the Laravel module.",
     "type": "library",
     "license": "MIT",
     "keywords": [
