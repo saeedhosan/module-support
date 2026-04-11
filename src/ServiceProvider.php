@@ -57,6 +57,9 @@ class ServiceProvider extends BaseServiceProvider
 
             return module($name)->active();
         });
+
+        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'module-support');
+        Blade::component('module-support::components.module');
     }
 
     private function withAbout(): void
