@@ -2,6 +2,8 @@
 
 Your friendly companion for building modular Laravel applications. This package makes it dead simple to organize your Laravel app into self-contained modules with their own structure.
 
+> Note: This package only for development because it used eval code to override the Laravel default commands classes and for using any module helpers in production use saeedhosan/module-support package.
+
 ## What is this?
 
 Think of modules as building blocks for your Laravel app. Instead of dumping everything into `app/Http/Controllers`, `app/Models`, and friends, you can group related functionality into modules. Each module can have its own controllers, models, views, migrations—everything it needs to work independently.
